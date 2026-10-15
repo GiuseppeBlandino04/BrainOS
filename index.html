@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070f">
+<meta name="description" content="BrainOS sul telefono: il tuo secondo cervello in 3D, domande con le fonti, studio e scambio con il PC tramite Google Drive.">
+<title>BrainOS</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script>
+// Diagnosi: se l'app non parte (file mancanti su GitHub, errori), lo dice invece di restare ferma
+window.__bosErrors = [];
+addEventListener('error', e => {
+  const t = e.target;
+  if (t && t !== window && (t.src || t.href)) __bosErrors.push('Non trovato: ' + (t.src || t.href).replace(location.href.replace(/[^/]*$/, ''), ''));
+  else if (e.message) __bosErrors.push(e.message);
+}, true);
+addEventListener('unhandledrejection', e => __bosErrors.push(String(e.reason && e.reason.message || e.reason)));
+setTimeout(() => {
+  if (window.__bosStarted) return;
+  const v = document.getElementById('view');
+  const errs = __bosErrors.filter(x => !/jsdelivr|katex|marked|purify/.test(x));
+  v.innerHTML = '<div class="banner"><b>L\'app non è riuscita ad avviarsi.</b><br><br>' +
+    (errs.length ? errs.map(x => '• ' + x.replace(/</g, '&lt;')).join('<br>') + '<br><br>' : '') +
+    'Di solito manca la cartella <b>js</b> (o un suo file) su GitHub: ricaricala con «Add file → Upload files» ' +
+    'trascinando la cartella intera, aspetta 1-2 minuti e ricarica questa pagina.<br><br>' +
+    '<button class="btn" onclick="location.reload()">Ricarica</button></div>';
+}, 6000);
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo"></span>Brain<b>OS</b></div>
+  <div class="row" style="gap:8px"><button class="sync-chip" id="syncChip"><span class="dot"></span><span id="syncText">…</span></button>
+  <button class="gear" id="gear" title="Impostazioni">⚙</button></div>
+</header>
+
+<main id="view"></main>
+
+<section id="brainHost" class="brain-host hidden">
+  <div id="brainCanvas" class="brain-canvas"></div>
+  <div class="brain-bar">
+    <div class="seg mini-seg"><button data-bm="frammenti" class="on">Frammenti</button><button data-bm="documenti">Documenti</button></div>
+    <button class="round" id="bFind" title="Cerca un neurone">🔎</button>
+    <button class="round" id="bRegions" title="Regioni">🗺</button>
+    <button class="round" id="bHome" title="Vista iniziale">⌂</button>
+  </div>
+  <div class="brain-info"><span id="bInfo"></span><label>☀ <input type="range" id="bBright" min="0.3" max="2" step="0.05"></label></div>
+  <div id="bEmpty" class="brain-empty hidden"></div>
+  <div id="trail" class="trail hidden">
+    <div class="row"><button class="round" id="tPrev">◀</button><b id="tStep" class="grow" style="text-align:center">🧭</b><button class="round" id="tNext">▶</button><button class="round" id="tClose">✕</button></div>
+    <div id="tBody"></div>
+  </div>
+</section>
+
+<section id="chatHost" class="chat-host hidden">
+  <div class="chat-top">
+    <button class="pill" id="cFilter">📁 Tutto</button><button class="pill" id="cWeb">🌐 Web: auto</button>
+    <span class="grow"></span><button class="pill" id="cHist" title="Conversazioni">🕘</button><button class="pill" id="cNew" title="Nuova">＋</button>
+  </div>
+  <div id="cMsgs" class="chat-msgs"></div>
+  <form id="cForm" class="chat-form"><textarea id="cInput" rows="1" placeholder="Fai una domanda…"></textarea><button class="btn primary" id="cSend">➤</button></form>
+</section>
+
+<nav class="tabs">
+  <button data-tab="oggi" class="on"><span>🏠</span>Oggi</button>
+  <button data-tab="cervello"><span>🧠</span>Cervello</button>
+  <button data-tab="chiedi"><span>💬</span>Chiedi</button>
+  <button data-tab="studio"><span>🎓</span>Studio<i id="dueN" class="n hidden"></i></button>
+  <button data-tab="materiale"><span>📚</span>Materiale</button>
+</nav>
+
+<div id="sheet" class="sheet hidden"><div class="sheet-box"><div id="sheetBody"></div></div></div>
+<div id="screen" class="screen hidden"></div>
+<div id="toast" class="toast hidden"></div>
+
+<input type="file" id="pickPhoto" accept="image/*" capture="environment" hidden>
+<input type="file" id="pickFile" multiple hidden>
+<input type="file" id="pickDir" webkitdirectory directory multiple hidden>
+<input type="file" id="pickZip" accept=".zip,application/zip" hidden>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
